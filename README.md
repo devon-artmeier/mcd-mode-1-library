@@ -37,13 +37,13 @@ Once that is called and you start checking if your program has started running, 
 need to make sure the Sub CPU's IRQ2 gets triggered. You can go about this in 2 ways:
 
 * Call **SubCpuInitIrq2** inside the wait loop, which approximates the timing of the IRQ2 triggers
-to avoid messing with the VDP.
+to avoid messing with the VDP. An example of this usage:
 
       WaitSubCpuStart:
-              jsr     SubCpuInitIrq2            ; Trigger IRQ2 and wait
+              jsr     SubCpuInitIrq2            ; Trigger IRQ2 and delay
               ; Check if the Sub CPU program has started running
               bra.s   WaitSubCpuStart           ; Loop until it has started
-* Call **TriggerSubCpuIrq2** manually to fit your specific needs (i.e. using your V-BLANK interrupt handler).
+* Call **TriggerSubCpuIrq2** manually to fit your specific needs. An example using the V-BLANK interrupt handler:
 
       WaitSubCpuStart:
               ; Check if the Sub CPU program has started running

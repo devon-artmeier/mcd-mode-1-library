@@ -41,6 +41,14 @@ InitSubCpu:
 	
 	bsr.w	ResetGateArray				; Reset the Gate Array
 	
+	moveq	#0,d0					; Clear communication registers
+	lea	$A12010,a0
+	move.b	d0,-2(a0)
+	move.l	d0,(a0)+
+	move.l	d0,(a0)+
+	move.l	d0,(a0)+
+	move.l	d0,(a0)+
+	
 	move.l	#$100,d0				; Hold Sub CPU reset
 	bsr.w	HoldSubCpuResetTimed
 	bne.s	InitSubCpu_HardwareFail			; If it failed, branch
@@ -159,7 +167,7 @@ McdBios_Wonder16000:
 	even
 
 ; ----------------------------------------------------------------------
-; Sub CPU initialization IRQ2 trigger
+; Sub CPU initialization IRQ2 trigger and delay
 ; ----------------------------------------------------------------------
 ; Use this when waiting for the Sub CPU to initialize after loading
 ; the BIOS and system program and starting the Sub CPU. If this
