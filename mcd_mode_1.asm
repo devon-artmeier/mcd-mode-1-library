@@ -42,12 +42,12 @@ InitSubCpu:
 	bsr.w	ResetGateArray				; Reset the Gate Array
 	
 	moveq	#0,d0					; Clear communication registers
-	lea	$A12010,a0
-	move.b	d0,-2(a0)
-	move.l	d0,(a0)+
-	move.l	d0,(a0)+
-	move.l	d0,(a0)+
-	move.l	d0,(a0)+
+	lea	$A12010,a1
+	move.b	d0,-2(a1)
+	move.l	d0,(a1)+
+	move.l	d0,(a1)+
+	move.l	d0,(a1)+
+	move.l	d0,(a1)+
 	
 	move.l	#$100,d0				; Hold Sub CPU reset
 	bsr.w	HoldSubCpuResetTimed
