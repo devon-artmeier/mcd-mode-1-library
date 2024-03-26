@@ -59,7 +59,7 @@ InitMcd:
 	move.b	#0,$A12002				; Disable write protection
 	
 	lea	$420000,a1				; Decompress Sub CPU BIOS
-	jsr	SubCpuKosDec
+	jsr	McdKosDec
 	
 	movem.l (sp),d0/a0				; Load Sub CPU program
 	move.l	#$6000,d1
@@ -72,7 +72,7 @@ InitMcd:
 	bsr.w	ReleaseMcdResetTimed
 	bne.s	InitMcd_HardwareFail			; If it failed, branch
 	
-	bsr.w	ReleaseMcdBusTimed		; Release Sub CPU bus
+	bsr.w	ReleaseMcdBusTimed			; Release Sub CPU bus
 	bne.s	InitMcd_HardwareFail			; If it failed, branch
 	
 	movem.l (sp)+,d0/a0				; Success
