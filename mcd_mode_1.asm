@@ -49,11 +49,11 @@ InitMcd:
 	move.l	d0,(a1)+
 	move.l	d0,(a1)+
 	
-	move.l	#$100,d0				; Hold Sub CPU reset
+	move.l	#$100,d0				; Hold reset
 	bsr.w	HoldMcdResetTimed
 	bne.s	InitMcd_HardwareFail			; If it failed, branch
 	
-	bsr.w	RequestMcdBusTimed			; Request Sub CPU bus access
+	bsr.w	RequestMcdBusTimed			; Request bus access
 	bne.s	InitMcd_HardwareFail			; If it failed, branch
 	
 	move.b	#0,$A12002				; Disable write protection
@@ -68,11 +68,11 @@ InitMcd:
 	
 	move.b	#$2A,$A12002				; Enable write protection	
 
-	move.l	#$100,d0				; Release Sub CPU reset
+	move.l	#$100,d0				; Release reset
 	bsr.w	ReleaseMcdResetTimed
 	bne.s	InitMcd_HardwareFail			; If it failed, branch
 	
-	bsr.w	ReleaseMcdBusTimed			; Release Sub CPU bus
+	bsr.w	ReleaseMcdBusTimed			; Release bus
 	bne.s	InitMcd_HardwareFail			; If it failed, branch
 	
 	movem.l (sp)+,d0/a0				; Success
@@ -90,7 +90,7 @@ InitMcd_ProgramLoadFail:
 	rts
 
 InitMcd_HardwareFail:
-	move.b	#%00000010,$A12001			; Halt the Sub CPU
+	move.b	#%00000010,$A12001			; Halt
 	
 	movem.l (sp)+,d0/a0				; Hardware failure
 	moveq	#3,d0
@@ -101,7 +101,7 @@ InitMcd_HardwareFail:
 ; ----------------------------------------------------------------------
 ; RETURNS:
 ;	eq/ne - Found/Not found
-;	a0.l  - Pointer to compress Sub CPU BIOS, if found
+;	a0.l  - Pointer to compressed Sub CPU BIOS, if found
 ; ----------------------------------------------------------------------
 
 CheckMcdBios:
@@ -167,12 +167,11 @@ McdBios_Wonder16000:
 	even
 
 ; ----------------------------------------------------------------------
-; Sub CPU initialization IRQ2 trigger and delay
+; Mega CD initialization IRQ2 trigger and delay
 ; ----------------------------------------------------------------------
 ; Use this when waiting for the Sub CPU to initialize after loading
-; the BIOS and system program and starting the Sub CPU. If this
-; doesn't fit your needs, then you can manually call TriggerMcdIrq2
-; however you please.
+; the BIOS and system program and booting. If this doesn't fit your
+; needs, then you can manually call TriggerMcdIrq2 however you please.
 ; ----------------------------------------------------------------------
 
 McdInitIrq2:
@@ -180,7 +179,7 @@ McdInitIrq2:
 	move	sr,-(sp)				; Save interrupt settings
 	move	#$2700,sr				; Disable interrupts
 
-	bsr.s	TriggerMcdIrq2				; Trigger the Sub CPU's IRQ2
+	bsr.s	TriggerMcdIrq2				; Trigger IRQ2
 
 	move.w	#$2DCE-1,d0				; Delay for a while
 
@@ -212,33 +211,33 @@ ResetMcdGateArray_Wait:
 	rts
 	
 ; ----------------------------------------------------------------------
-; Trigger the Sub CPU's IRQ2
+; Trigger IRQ2
 ; ----------------------------------------------------------------------
 
 TriggerMcdIrq2:
-	bset	#0,$A12000				; Trigger the Sub CPU's IRQ2
+	bset	#0,$A12000				; Trigger IRQ2
 	rts
 
 ; ----------------------------------------------------------------------
-; Hold Sub CPU reset
+; Hold reset
 ; ----------------------------------------------------------------------
 
 HoldMcdReset:
-	bclr	#0,$A12001				; Hold Sub CPU reset
+	bclr	#0,$A12001				; Hold reset
 	bne.s	HoldMcdReset
 	rts
 
 ; ----------------------------------------------------------------------
-; Release Sub CPU reset
+; Release reset
 ; ----------------------------------------------------------------------
 
 ReleaseMcdReset:
-	bset	#0,$A12001				; Release Sub CPU reset
+	bset	#0,$A12001				; Release reset
 	beq.s	ReleaseMcdReset
 	rts
 
 ; ----------------------------------------------------------------------
-; Hold Sub CPU reset (timed)
+; Hold reset (timed)
 ; ----------------------------------------------------------------------
 ; PARAMETERS:
 ;	d0.l  - Time to wait
@@ -250,7 +249,7 @@ HoldMcdResetTimed:
 	move.l	d0,-(sp)				; Save d0
 
 HoldMcdResetTimed_Wait:
-	bclr	#0,$A12001				; Hold Sub CPU reset
+	bclr	#0,$A12001				; Hold reset
 	beq.s	HoldMcdResetTimed_Success		; If it was successful, branch
 	subq.l	#1,d0					; Decrement time left
 	bne.s	HoldMcdResetTimed_Wait			; Loop if we should try again
@@ -265,7 +264,7 @@ HoldMcdResetTimed_Success:
 	rts
 
 ; ----------------------------------------------------------------------
-; Release Sub CPU reset (timed)
+; Release reset (timed)
 ; ----------------------------------------------------------------------
 ; PARAMETERS:
 ;	d0.l  - Time to wait
@@ -277,7 +276,7 @@ ReleaseMcdResetTimed:
 	move.l	d0,-(sp)				; Save d0
 
 ReleaseMcdResetTimed_Wait:
-	bset	#0,$A12001				; Release Sub CPU reset
+	bset	#0,$A12001				; Release reset
 	bne.s	ReleaseMcdResetTimed_Success		; If it was successful, branch
 	subq.l	#1,d0					; Decrement time left
 	bne.s	ReleaseMcdResetTimed_Wait		; Loop if we should try again
@@ -292,25 +291,25 @@ ReleaseMcdResetTimed_Success:
 	rts
 
 ; ----------------------------------------------------------------------
-; Request access to the Sub CPU bus
+; Request access to the bus
 ; ----------------------------------------------------------------------
 
 RequestMcdBus:
-	bset	#1,$A12001				; Request Sub CPU bus access
+	bset	#1,$A12001				; Request bus access
 	beq.s	RequestMcdBus
 	rts
 
 ; ----------------------------------------------------------------------
-; Release the Sub CPU bus
+; Release the bus
 ; ----------------------------------------------------------------------
 
 ReleaseMcdBus:
-	bclr	#1,$A12001				; Release Sub CPU bus
+	bclr	#1,$A12001				; Release bus
 	bne.s	ReleaseMcdBus
 	rts
 
 ; ----------------------------------------------------------------------
-; Request access to the Sub CPU bus (timed)
+; Request access to the bus (timed)
 ; ----------------------------------------------------------------------
 ; PARAMETERS:
 ;	d0.l  - Time to wait
@@ -322,7 +321,7 @@ RequestMcdTimed:
 	move.l	d0,-(sp)				; Save d0
 
 RequestMcdBusTimed_Wait:
-	bset	#1,$A12001				; Request Sub CPU bus access
+	bset	#1,$A12001				; Request bus access
 	bne.s	RequestMcdBusTimed_Success		; If it was successful, branch
 	subq.l	#1,d0					; Decrement time left
 	bne.s	RequestMcdBusTimed_Wait			; Loop if we should try again
@@ -337,7 +336,7 @@ RequestMcdBusTimed_Success:
 	rts
 
 ; ----------------------------------------------------------------------
-; Release the Sub CPU bus (timed)
+; Release the bus (timed)
 ; ----------------------------------------------------------------------
 ; PARAMETERS:
 ;	d0.l  - Time to wait
@@ -349,7 +348,7 @@ ReleaseMcdBusTimed:
 	move.l	d0,-(sp)				; Save d0
 
 ReleaseMcdBusTimed_Wait:
-	bclr	#1,$A12001				; Release Sub CPU bus
+	bclr	#1,$A12001				; Release bus
 	beq.s	ReleaseMcdBusTimed_Success		; If it was successful, branch
 	subq.l	#1,d0					; Decrement time left
 	bne.s	ReleaseMcdBusTimed_Wait			; Loop if we should try again
@@ -364,9 +363,9 @@ ReleaseMcdBusTimed_Success:
 	rts
 	
 ; ----------------------------------------------------------------------
-; Copy data to the Sub CPU's Program RAM
+; Copy data to Program RAM
 ; ----------------------------------------------------------------------
-; You should get access to the Sub CPU's bus before calling this.
+; You should get access to the bus before calling this.
 ; ----------------------------------------------------------------------
 ; PARAMETERS:
 ;	a0.l  - Pointer to data to copy
@@ -401,10 +400,10 @@ CopyMcdPrgRamData_CopyData:
 	bne.s	CopyMcdPrgRamData_Fail			; If not, branch
 	
 	subq.l	#1,d0					; Decrement number of bytes left to copy
-	beq.s	CopyMcdPrgRamData_Success			; If we are finished, branch
+	beq.s	CopyMcdPrgRamData_Success		; If we are finished, branch
 	
 	cmpa.l	#$440000,a1				; Have we reached the end of the bank?
-	bcs.s	CopyMcdPrgRamData_CopyData			; If not, branch
+	bcs.s	CopyMcdPrgRamData_CopyData		; If not, branch
 
 	addi.b	#$40,$A12003				; Go to next bank
 	lea	$420000,a1
