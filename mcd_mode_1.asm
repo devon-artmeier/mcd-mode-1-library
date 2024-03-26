@@ -34,7 +34,7 @@
 ; ----------------------------------------------------------------------
 
 InitMcd:
-	movem.l	d0-d1/a1,-(sp)				; Save registers
+	movem.l	d0-d1/a0-a1,-(sp)			; Save registers
 	
 	bsr.w	CheckMcdBios				; Check for a BIOS
 	bne.s	InitMcd_NoBIOS				; If no BIOS was found, branch
@@ -54,7 +54,8 @@ InitMcd:
 	lea	$420000,a1				; Decompress Sub CPU BIOS
 	jsr	McdKosDec
 	
-	move.l	#$6000,d1				; Load Sub CPU program
+	movem.l (sp)+,d0-d1/a0-a1			; Load Sub CPU program
+	move.l	#$6000,d1
 	bsr.w	CopyMcdPrgRamData
 	bne.s	InitMcd_ProgramLoadFail			; If it failed, branch
 	
@@ -67,24 +68,24 @@ InitMcd:
 	bsr.w	ReleaseMcdBusTimed			; Release bus
 	bne.s	InitMcd_HardwareFail			; If it failed, branch
 	
-	movem.l (sp)+,d0-d1/a1				; Success
+	movem.l (sp)+,d0-d1/a0-a1			; Success
 	moveq	#0,d0
 	rts
 
 InitMcd_NoBIOS:
-	movem.l (sp)+,d0-d1/a1				; No BIOS found
+	movem.l (sp)+,d0-d1/a0-a1			; No BIOS found
 	moveq	#1,d0
 	rts
 
 InitMcd_ProgramLoadFail:
-	movem.l (sp)+,d0-d1/a1				; Program load failed
+	movem.l (sp)+,d0-d1/a0-a1			; Program load failed
 	moveq	#2,d0
 	rts
 
 InitMcd_HardwareFail:
 	move.b	#%00000010,$A12001			; Halt
 	
-	movem.l (sp)+,d0-d1/a1				; Hardware failure
+	movem.l (sp)+,d0-d1/a0-a1			; Hardware failure
 	moveq	#3,d0
 	rts
 
