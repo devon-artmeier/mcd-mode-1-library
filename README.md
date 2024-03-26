@@ -19,7 +19,7 @@ indicates if it was successful, or if an error has occurred.
 
             lea     SubCpuProgram,a0              ; Initialize the Sub CPU
             move.l  #SubCpuProgramLength,d0
-            jsr     InitSubCpu
+            jsr     InitMcdSubCpu
             beq.s   SubCpuInitSuccess             ; If it was successful, branch
         
     SubCpuInitError:
@@ -40,7 +40,7 @@ need to make sure the Sub CPU's IRQ2 gets triggered. You can go about this in 2 
 to avoid messing with the VDP. An example of this usage:
 
       WaitSubCpuStart:
-              jsr     SubCpuInitIrq2            ; Trigger IRQ2 and delay
+              jsr     McdSubCpuInitIrq2         ; Trigger IRQ2 and delay
               ; Check if the Sub CPU program has started running
               bra.s   WaitSubCpuStart           ; Loop until it has started
 * Call **TriggerSubCpuIrq2** manually to fit your specific needs. An example using the V-BLANK interrupt handler:
@@ -52,7 +52,7 @@ to avoid messing with the VDP. An example of this usage:
               ...
 
       VBlankInterrupt:
-              jsr     TriggerSubCpuIrq2         ; Trigger the Sub CPU's IRQ2
+              jsr     TriggerMcdSubCpuIrq2      ; Trigger the Sub CPU's IRQ2
               ...
 
 If this isn't suitable for your needs, then you can run separate functions that handle Sub CPU
