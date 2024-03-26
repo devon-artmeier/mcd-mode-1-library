@@ -313,7 +313,7 @@ ReleaseMcdBus:
 ;	eq/ne - Success/Failure
 ; ----------------------------------------------------------------------
 
-RequestMcdTimed:
+RequestMcdBusTimed:
 	move.l	d0,-(sp)				; Save d0
 
 RequestMcdBusTimed_Wait:
