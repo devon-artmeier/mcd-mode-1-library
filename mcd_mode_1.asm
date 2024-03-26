@@ -34,20 +34,13 @@
 ; ----------------------------------------------------------------------
 
 InitMcd:
-	movem.l	d0/a0,-(sp)				; Save registers
+	movem.l	d0-d1/a1,-(sp)				; Save registers
 	
 	bsr.w	CheckMcdBios				; Check for a BIOS
 	bne.s	InitMcd_NoBIOS				; If no BIOS was found, branch
 	
 	bsr.w	ResetMcdGateArray			; Reset the Gate Array
-	
-	moveq	#0,d0					; Clear communication registers
-	lea	$A12010,a1
-	move.b	d0,-2(a1)
-	move.l	d0,(a1)+
-	move.l	d0,(a1)+
-	move.l	d0,(a1)+
-	move.l	d0,(a1)+
+	bsr.w	ClearMcdCommRegisters			; Clear communication registers
 	
 	move.l	#$100,d0				; Hold reset
 	bsr.w	HoldMcdResetTimed
@@ -61,8 +54,7 @@ InitMcd:
 	lea	$420000,a1				; Decompress Sub CPU BIOS
 	jsr	McdKosDec
 	
-	movem.l (sp),d0/a0				; Load Sub CPU program
-	move.l	#$6000,d1
+	move.l	#$6000,d1				; Load Sub CPU program
 	bsr.w	CopyMcdPrgRamData
 	bne.s	InitMcd_ProgramLoadFail			; If it failed, branch
 	
@@ -75,24 +67,24 @@ InitMcd:
 	bsr.w	ReleaseMcdBusTimed			; Release bus
 	bne.s	InitMcd_HardwareFail			; If it failed, branch
 	
-	movem.l (sp)+,d0/a0				; Success
+	movem.l (sp)+,d0-d1/a1				; Success
 	moveq	#0,d0
 	rts
 
 InitMcd_NoBIOS:
-	movem.l (sp)+,d0/a0				; No BIOS found
+	movem.l (sp)+,d0-d1/a1				; No BIOS found
 	moveq	#1,d0
 	rts
 
 InitMcd_ProgramLoadFail:
-	movem.l (sp)+,d0/a0				; Program load failed
+	movem.l (sp)+,d0-d1/a1				; Program load failed
 	moveq	#2,d0
 	rts
 
 InitMcd_HardwareFail:
 	move.b	#%00000010,$A12001			; Halt
 	
-	movem.l (sp)+,d0/a0				; Hardware failure
+	movem.l (sp)+,d0-d1/a1				; Hardware failure
 	moveq	#3,d0
 	rts
 
@@ -105,6 +97,8 @@ InitMcd_HardwareFail:
 ; ----------------------------------------------------------------------
 
 CheckMcdBios:
+	movem.l	d0/a1-a3,-(sp)				; Save registers
+	
 	cmpi.l	#"SEGA",$400100				; Is the "SEGA" signature present?
 	bne.s	CheckMcdBios_End			; If not, branch
 	cmpi.w	#"BR",$400180				; Is the "Boot ROM" software type present?
@@ -131,6 +125,7 @@ CheckMcdBios_NotFound:
 	andi	#%11111011,ccr				; BIOS not found
 
 CheckMcdBios_End:
+	movem.l	(sp)+,d0/a1-a3				; Restore registers
 	rts
 
 ; ----------------------------------------------------------------------
@@ -417,6 +412,18 @@ CopyMcdPrgRamData_Fail:
 CopyMcdPrgRamData_Success:
 	movem.l	(sp)+,d0/d2/a1				; Restore registers
 	ori	#%00000100,ccr				; Success
+	rts
+
+; ----------------------------------------------------------------------
+; Clear communication registers
+; ----------------------------------------------------------------------
+
+ClearMcdCommRegisters:
+	clr.b	$A1200E					; Clear communication registers
+	clr.l	$A12010
+	clr.l	$A12014
+	clr.l	$A12018
+	clr.l	$A1201C
 	rts
 
 ; ----------------------------------------------------------------------
