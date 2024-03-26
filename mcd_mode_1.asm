@@ -54,7 +54,7 @@ InitMcd:
 	lea	$420000,a1				; Decompress Sub CPU BIOS
 	jsr	McdKosDec
 	
-	movem.l (sp)+,d0-d1/a0-a1			; Load Sub CPU program
+	movem.l (sp),d0-d1/a0-a1			; Load Sub CPU program
 	move.l	#$6000,d1
 	bsr.w	CopyMcdPrgRamData
 	bne.s	InitMcd_ProgramLoadFail			; If it failed, branch
